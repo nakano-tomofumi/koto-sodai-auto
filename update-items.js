@@ -69,11 +69,14 @@ function parseTicketCount(value) {
   return match ? Number(match[1]) : 0;
 }
 
-function splitAndCleanLines(text) {
-  return String(text || "")
-    .split(/\r?\n+/)
-    .map((line) => normalizeText(line))
-    .filter(Boolean);
+function isHeadingNoise(text) {
+  return (
+    text.includes("粗大ごみ品目一覧表") ||
+    text.includes("手数料") ||
+    text.includes("品目") ||
+    text.includes("処理券組合せ") ||
+    text.includes("江東区")
+  );
 }
 
 function splitRowsFromPageText(text) {
@@ -144,20 +147,22 @@ function parseItemRowsFromText(text, source) {
     }
 
     const body = row.text.replace(/^([あ-ん])\s+/, "");
-    const feeMatch = body.match(/([0-9][0-9,]*)\s+([^\d]+?)\s+([0-9-]+枚|-)\s+([0-9-]+枚|-)(?:\s+|$)/);
+    const feeMatch = body.match(/^(.+?)\s+([0-9][0-9,]*|※)\s*(.*?)\s+([0-9-]+枚|-)\s+([0-9-]+枚|-)(?:\s+|$)/);
     if (!feeMatch) {
       continue;
     }
 
-    const beforeFee = normalizeText(body.slice(0, feeMatch.index)).replace(/^([あ-ん])\s+/, "");
-    const itemName = normalizeText(beforeFee);
-    const memo = normalizeText(feeMatch[2]);
+    const itemName = normalizeText(feeMatch[1]);
+    if (!itemName || isHeadingNoise(itemName)) {
+      continue;
+    }
+
     items.push({
       item_name: itemName,
-      fee_yen: parseCost(feeMatch[1]),
-      memo,
-      a_tickets: parseTicketCount(feeMatch[3]),
-      b_tickets: parseTicketCount(feeMatch[4]),
+      fee_yen: feeMatch[2] === "※" ? "※" : parseCost(feeMatch[2]),
+      memo: normalizeText(feeMatch[3]),
+      a_tickets: parseTicketCount(feeMatch[4]),
+      b_tickets: parseTicketCount(feeMatch[5]),
       source_pdf_url: source.pdfUrl,
       source_pdf_name: source.pdfName,
     });
