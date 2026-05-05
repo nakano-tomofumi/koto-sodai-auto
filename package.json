@@ -1,0 +1,23 @@
+{
+  "name": "koto-sodai-auto",
+  "version": "0.1.0",
+  "private": true,
+  "description": "江東区の粗大ごみ予約を半自動化する Playwright スクリプト",
+  "main": "reserve-koto-sodai.js",
+  "scripts": {
+    "start": "node reserve-koto-sodai.js",
+    "dry-run": "node reserve-koto-sodai.js --dry-run",
+    "update-items": "node update-items.js",
+    "test-browser": "node test-browser.js",
+    "resolve-item": "node resolve-item.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "pdfjs-dist": "^5.1.91",
+    "playwright": "^1.54.0"
+  }
+}
